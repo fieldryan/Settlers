@@ -4,12 +4,15 @@ public class Tile {
 
     public final TileType tileType;
     public final TilePos pos;
-    public final int diceNumber;
+    public int diceNumber = 0;
 
-    public Tile(TileType tileType, TilePos pos, int diceNumber) {
+    public Tile(TileType tileType, TilePos pos) {
         this.tileType = tileType;
         this.pos = pos;
-        this.diceNumber = diceNumber;
+    }
+
+    public void setDiceNumber(Integer number){
+        this.diceNumber = number;
     }
 
 }

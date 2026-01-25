@@ -1,56 +1,60 @@
 package Game;
 
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 public class Board {
-    private final Tile[][][] tileBoard = new Tile[5][5][5];
-    private final List<TileType> tiles = new ArrayList<>();
+    Map<NodePos, Node> nodes = new HashMap<>();
+    Map<TilePos, Tile> tileMap = new HashMap<>();
+
+    private final List<TileType> tilesToAdd = new ArrayList<>();
     private final List<Integer> counters = new ArrayList<>(List.of(2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12));
 
 
-    static final TilePos[] DIR = new TilePos[] {
-            new TilePos( 1, -1,  0),
-            new TilePos( 1,  0, -1),
-            new TilePos( 0,  1, -1),
-            new TilePos(-1,  1,  0),
-            new TilePos(-1,  0,  1),
-            new TilePos( 0, -1,  1)
-    };
-    
-    
     public Board(int sheepTileCount, int wheatTileCount, int stoneTileCount, int woodTileCount, int brickTileCount) {
         int boardSize = 18;
-        assert sheepTileCount + wheatTileCount + stoneTileCount + woodTileCount == boardSize;
-        for(int i = 0; i < sheepTileCount; i++) tiles.add(TileType.SHEEP);
-        for(int i = 0; i < wheatTileCount; i++) tiles.add(TileType.WHEAT);
-        for(int i = 0; i < stoneTileCount; i++) tiles.add(TileType.STONE);
-        for(int i = 0; i < woodTileCount; i++) tiles.add(TileType.WOOD);
-        for(int i = 0; i < brickTileCount; i++) tiles.add(TileType.BRICK);
-        tiles.add(TileType.DESERT);
+        assert sheepTileCount + wheatTileCount + stoneTileCount + woodTileCount + brickTileCount == boardSize;
+        for(int i = 0; i < sheepTileCount; i++) tilesToAdd.add(TileType.SHEEP);
+        for(int i = 0; i < wheatTileCount; i++) tilesToAdd.add(TileType.WHEAT);
+        for(int i = 0; i < stoneTileCount; i++) tilesToAdd.add(TileType.STONE);
+        for(int i = 0; i < woodTileCount; i++) tilesToAdd.add(TileType.WOOD);
+        for(int i = 0; i < brickTileCount; i++) tilesToAdd.add(TileType.BRICK);
+        tilesToAdd.add(TileType.DESERT);
         createBoard();
     }
 
     public void createBoard() {
-        for (int q = 0; q < 5; q++) {
-            for (int r = 0; r < 5; r++) {
-                for (int s = 0; s < 5; s++) {
-                    tileBoard[q][r][s] = getRandomTile(q, r, s);
-                }
+        int radius = 2;
+        for (int q = -radius; q <= radius; q++) {
+            int rMin = Math.max(-radius, -q - radius);
+            int rMax = Math.min(radius, -q + radius);
+            for (int r = rMin; r <= rMax; r++) {
+                int s = -q - r;
+                tileMap.put(new TilePos(q,r,s), getRandomTile(q, r, s));
+            }
+        }
+
+
+        buildNodes();
+    }
+
+    private void buildNodes() {
+        for(Tile tile: tileMap.values()){
+            for(int i = 0; i < 6; i++){
+                NodePos pos = GameMath.nodeOf(tile.pos, i);
+                nodes.computeIfAbsent(pos,Node::new);
             }
         }
     }
 
-    private int getRandomDiceNumber(){
-        return counters.remove((int) (Math.random() * counters.size()));
-    }
-
     private Tile getRandomTile(int q, int r, int s) {
-        return new Tile(tiles.remove((int) (Math.random() * tiles.size())), new TilePos(q,r,s), getRandomDiceNumber());
+        TileType type = tilesToAdd.remove((int) (Math.random() * tilesToAdd.size()));
+        if(type.equals(TileType.DESERT)) return new Tile(type, new TilePos(q,r,s));
+        return new Tile(type, new TilePos(q,r,s));
     }
 
-    public Tile[][][] getTileBoard(){
-        return tileBoard;
+    public Map<TilePos, Tile> getTileBoard(){
+        return tileMap;
     }
 
     
